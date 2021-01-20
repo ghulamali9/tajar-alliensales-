@@ -1,0 +1,264 @@
+{% extends 'dashboard/base.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+<div class="container-fluid">
+    <div class="block-header">
+        <h2>DASHBOARD/Customers</h2>
+    </div>
+    <div class="container-fluid py-5">  
+        <!-- Button trigger modal -->
+        <button type="button" class="btn btn-lg btn-danger" data-toggle="modal" data-target="#exampleModal">
+            Add New Customers
+        </button>
+    </div>
+    <div class="container-fluid">
+        <!-- Basic Examples -->
+        <div class="row clearfix">
+            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                <div class="card">
+                    <div class="header">
+                        <h2>
+                            Existing Customers
+                        </h2>
+                        <ul class="header-dropdown m-r--5">
+                            <li class="dropdown">
+                                <a href="javascript:void(0);" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                                    <i class="material-icons">more_vert</i>
+                                </a>
+                                <ul class="dropdown-menu pull-right">
+                                    <li><a href="javascript:void(0);">Action</a></li>
+                                    <li><a href="javascript:void(0);">Another action</a></li>
+                                    <li><a href="javascript:void(0);">Something else here</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped table-hover js-basic-example dataTable" id="tableData">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Designation</th>
+                                        <th>Phone No.</th>
+                                        <th>Address</th>
+                                        <th colspan="2">Action</th>
+                                    </tr>
+                                </thead>
+                                <tfoot>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Designation</th>
+                                        <th>Phone No.</th>
+                                        <th>Address</th>
+                                        <th colspan="2">Action</th>
+                                    </tr>
+                                </tfoot>
+                                <tbody id="user-table">
+                                    {% include 'dashboard/customers-edit/list.html' %}                      
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- #END# Basic Examples -->        
+    </div>
+</div>
+
+
+
+<!-- Modal -->
+<div class="modal fade " id="modal-user" tabindex="-1" role="dialog" aria-labelledby="modal-user" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+      <div class="modal-content" style="background-color: #E7E7E7;">
+
+      </div>
+    </div>
+</div>
+
+<!--Form-->
+
+  <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content" style="background-color: #E7E7E7;">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form class="my-ajax-form" method="POST" data-url='{{ request.build_absolute_uri|safe }}'>
+        <div class="modal-body">        
+            {% csrf_token %}
+            <div class="alert-success"></div>
+            <div id="result" class="alert-danger"></div>    
+            <div class="form-group">
+                <div class="form-row">
+                    <div class="col-md-6">
+                        {{ form.customer_name | as_crispy_field }}       
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.customer_email | as_crispy_field }}       
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="col-md-6">
+                        {{ form.customer_designation | as_crispy_field }}       
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.customer_phone | as_crispy_field }}       
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="col-md-12">
+                        {{ form.customer_address | as_crispy_field }}       
+                    </div>
+                </div>     
+                 
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Add New</button>
+        </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+
+
+
+{% block JavaScript %}
+
+<script>
+    var $myForm = $(".my-ajax-form");
+      $myForm.submit(function(event){
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        var $formData = $(this).serialize()
+        var $thisURL = $myForm.attr("data-url") || window.location.href
+  
+        console.log($formData)
+        console.log($thisURL)
+        $.ajax({
+          method: "POST",
+          url: $thisURL,
+          data: $formData,
+          success: handleFormSuccess,
+              error: handleFormError,
+        })
+        function handleFormSuccess(data, textStatus, jqXHR){
+            var mainObj = JSON.parse(data)
+            console.log(mainObj)
+            if(isEmpty(mainObj)) {
+                console.log(data)
+                console.log(textStatus)
+                console.log(jqXHR)
+                $myForm[0].reset(); // reset form data
+                $('.alert-success'). addClass('alert'). html('submitted successfully!'). fadeIn().delay(4000).fadeOut();
+                ShowTable();
+            } else {
+                $.each(mainObj, function(index, value){
+                $("#result").append(index + ": " + value + '<br>').addClass('alert').fadeIn().delay(4000).fadeOut();
+                });
+            }
+            
+     }
+  
+     function handleFormError(jqXHR, textStatus, errorThrown){
+        
+         console.log(jqXHR)
+         console.log(textStatus)
+         console.log(errorThrown)
+          $('.alert-danger'). addClass('alert'). html('invalid data entered!'). fadeIn().delay(4000).fadeOut()
+     }
+      })
+      function isEmpty(obj) {
+        for(var key in obj) {
+            if(obj.hasOwnProperty(key))
+            return false;
+        }
+        return true;
+        }
+    
+  //Fetch Table
+function ShowTable(){
+  $.ajax({
+    url: '/customers-table',
+    dataType: 'json',
+    type: 'GET',
+    success: function(response){
+      tableFromResponse(response);
+      console.log("Data got successfully")
+    },
+    error: function(response){
+      console.log("Enable to get data");
+    }
+  });
+  function tableFromResponse(responseData) {
+    var mainObj = JSON.parse(responseData.data);
+    var count = 1;
+    var urlu = "{% url 'dashboard-customers-update' 0 %}"
+    var urld = "{% url 'dashboard-customers-delete' 0 %}"     
+    var k = '<thead>';
+          k+= '<tr>';                            
+              k+= '<th>#</th>';                        
+              k+= '<th>Name</th>';
+              k+= '<th>Email</th>';
+              k+= '<th>Designation</th>';
+              k+= '<th>Phone NO.</th>';
+              k+= '<th>Address</th>';                        
+              k+= '<th colspan="2">Action</th>'                        
+          k+= '</tr>';                        
+      k+= '</thead>';
+      k+= '<tfoot>';
+          k+= '<tr>';                            
+              k+= '<th>#</th>';                        
+              k+= '<th>Name</th>';
+              k+= '<th>Email</th>';
+              k+= '<th>Designation</th>';
+              k+= '<th>Phone NO.</th>';
+              k+= '<th>Address</th>';                        
+              k+= '<th colspan="2">Action</th>'                        
+          k+= '</tr>';                        
+      k+= '</tfoot>';
+      k += '<tbody id="user-table">';                        
+      for(i = 0;i < mainObj.length; i++){
+          
+          k+= '<tr>';
+            k+= '<td>' + count + '</td>';
+            k+= '<td>' + mainObj[i]["fields"]["customer_name"] + '</td>';
+            k+= '<td>' + mainObj[i]["fields"]["customer_email"] + '</td>';
+            k+= '<td>' + mainObj[i]["fields"]["customer_designation"] + '</td>';
+            k+= '<td>' + mainObj[i]["fields"]["customer_phone"] + '</td>';
+            k+= '<td>' + mainObj[i]["fields"]["customer_address"] + '</td>';
+            k+='<td>';
+              k+= '<button type="button" class="btn btn-warning show-form-update"   data-target="#modal-user" data-url=' + urlu.replace('0', mainObj[i]["pk"]) + '>';
+                  k+= 'Edit';
+              k+= '</button>';    
+            k+= '</td>'; 
+            k+='<td>';
+              k+= '<button type="button" class="btn btn-danger show-form-delete"   data-target="#modal-user" data-url=' + urld.replace('0', mainObj[i]["pk"]) + '>';
+                  k+= 'Delete';
+              k+= '</button>';    
+            k+= '</td>';     
+            k+= '</tr>';
+            count++;
+        }
+        k+='</tbody>';
+        $('#tableData').html(k);
+  }
+}  
+
+</script>
+
+{% endblock %}
+
+{% endblock %}

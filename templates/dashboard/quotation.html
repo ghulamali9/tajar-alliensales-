@@ -1,0 +1,338 @@
+{% extends 'dashboard/base.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+<div class="container-fluid">
+    <div class="block-header">
+        <h2>DASHBOARD/Quotations</h2>
+    </div>
+    <div class="container-fluid">
+        <div class="alert-success"></div>
+        <div class="alert-danger"></div>
+            <div class="form-row form-group" style="padding-bottom: 50px !important;">
+                <div class="col-md-6">
+                    <label for="customer">Select Customer</label>
+                    <select class="form-control" id="customer" required>
+                        {% for i in customers %}
+                        <option value="{{i.id}}">{{i.customer_name}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="material">Material</label>
+                    <input type="text" class="form-control" id="material" required>
+                </div>
+            </div>
+            <div class="form-row form-group">
+                <div class="col-md-2">
+                    <label for="units">Units</label>
+                    <input type="text" class="form-control" id="units" required>
+                </div>
+                <div class="col-md-2">
+                    <label for="rate">Rate</label>
+                    <input type="text" class="form-control" id="rate" required>
+                </div>
+                <div class="col-md-2">
+                    <label for="discountpercentage">Discount %</label>
+                    <input type="text" class="form-control" id="discountpercentage" value="0">
+                </div>
+                <div class="col-md-2">
+                    <label for="discountamount">Discount Amount</label>
+                    <input type="text" class="form-control" id="discountamount" value="0"  disabled>
+                </div>
+                <div class="col-md-2">
+                    <label for="netamount">Net Amount</label>
+                    <input type="text" class="form-control" id="netamount"  disabled>
+                </div>
+                <div class="col-md-2">
+                    <label for="plusbtn">Add Row</label><br>
+                    <button type="button" id="plusbtn" class="btn btn-danger " style="padding-left: 50px !important;padding-right: 50px !important;"> <strong >  +  </strong> </button>
+                </div>
+            </div>
+    </div>
+    <hr>
+    <div class="container-fluid " >
+        <div class="body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover js-basic-example dataTable" id="tableData">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Material</th>
+                            <th>Units</th>
+                            <th>Rate</th>
+                            <th>Discount Per%</th>
+                            <th>Discount Amount</th>
+                            <th>Net Amount</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="row-table">
+                        <tr>
+                            <td colspan="8"><p>No row added</p></td>
+                        </tr>                      
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+  
+  <!-- Modal -->
+  <div class="modal fade" id="generate-quotation" tabindex="-1" role="dialog" aria-labelledby="generate_quotationLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content" style="background-color: #E7E7E7;">
+        <div class="modal-header">
+          <h5 class="modal-title" id="generate_quotationLabel">Generate Quotation</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div>
+            {% for message in messages %}
+            <p class="text-danger">{{message}}*</p>
+            {% endfor %}
+        </div>
+        <form method="POST" id="quotation-form">
+            {% csrf_token %}
+        <div class="modal-body">
+            <div class="form-row form-group" style="padding-bottom: 50px !important;">
+                <div class="col-md-6">
+                    <label for="customerselected">Select Customer</label>
+                    <input type="text" class="form-control" id="customerselected"  disabled>
+                </div>
+                <div class="col-md-6">
+                    <label for="date">Date</label>
+                    <input type="date" class="form-control" id="date" required>
+                </div>
+            </div>
+            <div class="form-row form-group" style="padding-bottom: 50px !important;">
+                <div class="col-md-4">
+                    <label for="totaldiscountpercentage">Discount % on Total</label>
+                    <input type="text" class="form-control" value="0" id="totaldiscountpercentage" >
+                </div>
+                <div class="col-md-4">
+                    <label for="totaldiscountamount">Discount Amount</label>
+                    <input type="text" class="form-control" value="0" id="totaldiscountamount"  disabled>
+                </div>
+                <div class="col-md-4">
+                    <label for="totalamount">Total Amount</label>
+                    <input type="text" class="form-control" id="totalamount"  disabled>
+                </div>
+            </div>
+            <div class="form-row form-group" style="padding-bottom: 50px !important;">
+                <div class="col-md-12">
+                    <label for="remarks">Remarks</label>
+                    <textarea class="form-control" id="remarks">NIL</textarea>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Save changes</button>
+        </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+
+
+{% block JavaScript %}
+<script>
+     $(document).ready(function(){
+        var numberRegex = /^[+-]?\d+(\.\d+)?([eE][+-]?\d+)?$/;
+        var all = [];
+
+        var rate = $("#rate");
+        rate.keyup(function(){
+            var total = isNaN(parseInt(rate.val() * $("#units").val())) ? 0 :(rate.val()* $("#units").val());
+            $("#netamount").val(total);   
+        });
+        var disp = $("#discountpercentage");
+        disp.keyup(function(){
+        var total = isNaN(parseInt($("#rate").val()* $("#units").val())) ? 0 :($("#rate").val()* $("#units").val());
+        var disa = (total * disp.val()/100)
+         total = total - disa
+        $("#discountamount").val(disa)
+        $("#netamount").val(total)
+        });
+        var tdisp = $("#totaldiscountpercentage");
+        tdisp.keyup(function(){
+            var total2 = isNaN(parseInt($("#totalamount").val())) ? 0 : ($("#totalamount").val());
+            var tdisa = (total2 * tdisp.val()/100);
+            total2 = total2 - tdisa
+            $("#totaldiscountamount").val(tdisa)
+            $("#totalamount").val(total2)
+        });
+
+        var deleteRow = function(){
+                var btn = $(this)
+                var row_id = btn.attr('data-url')
+                for(var i=0;i<all.length;i++)
+                {
+                    if(i==row_id)
+                    {
+                        all.splice(i,1)
+                    }
+                }   
+                rowtohtml();               
+            }
+        $(document).on('click', '#plusbtn', function(){
+            var customer_name = $("#customer").val()
+            $("#customerselected").val(customer_name)
+            var material = $("#material").val()
+            var units = $("#units").val()
+            if(!(numberRegex.test(units)))
+            {
+                $('.alert-danger'). addClass('alert'). html("Units should be numeric*"). fadeIn().delay(4000).fadeOut()
+                return false;
+            }
+            var rate = $("#rate").val()
+            if(!(numberRegex.test(rate)))
+            {
+                $('.alert-danger'). addClass('alert'). html("Rate should be numeric*"). fadeIn().delay(4000).fadeOut()
+                return false;
+            }
+            var discount_percentage = $("#discountpercentage").val()
+            if(discount_percentage=='')
+            {
+                $("#discountpercentage").val(0)
+                discount_percentage=$("#discountpercentage").val()
+            }
+            if(!(numberRegex.test(discount_percentage)))
+            {
+                $('.alert-danger'). addClass('alert'). html("Discount should be numeric*"). fadeIn().delay(4000).fadeOut()
+                return false;
+            }
+            var discount_amount = $("#discountamount").val() 
+            var netamount = $("#netamount").val()
+            var row = [material,units,rate,discount_percentage,discount_amount,netamount]
+            all.push(row);
+            rowtohtml();
+            $("#tableData, #row-table").unbind().on('click', '#row-del', deleteRow);
+        });
+        function rowtohtml()
+        {
+            var count=0;
+            var url = "{% url 'dashboard-quotations-view' %}"
+            var calc_total_amount=0;
+            var k = '<thead>';
+                    k+= '<tr>';                            
+                        k+= '<th>#</th>';                        
+                        k+= '<th>Material</th>';
+                        k+= '<th>Units</th>';
+                        k+= '<th>Rate</th>';
+                        k+= '<th>Discount Per%</th>';
+                        k+= '<th>Discount Amount</th>';
+                        k+= '<th>Net Amount</th>';                        
+                        k+= '<th>Action</th>'                        
+                    k+= '</tr>';                        
+                k+= '</thead>';
+                k+= '<tfoot>';
+                    k+= '<tr>';                            
+                        k+= '<th colspan="8" class="justify-content-center text-center">';
+                            k+='<button type="button"  class="btn btn-primary" id="cancel-quotation"  style="margin-right:2px !important;">Cancel</button>';
+                            k+= '<button type="button"  class="btn btn-primary" data-toggle="modal" data-target="#generate-quotation" style="margin-right:2px !important;">Generate Quotation</button>';
+                            k+='<a href="'+ url +'"><button type="button"  class="btn btn-primary"  >View Quotations</button></a>';
+                        k+= '</th>';                                               
+                    k+= '</tr>';                        
+                k+= '</foot>';
+                k += '<tbody id="row-table">'; 
+            for(var i=0;i<all.length;i++)
+            {
+                k+= '<tr>';
+                    k+= '<td>' + count + '</td>';
+                for(var j=0;j<all[i].length;j++)
+                {    
+                    k+= '<td>' + all[i][j] + '</td>';
+                    if(j==5)
+                    {
+                        calc_total_amount+=parseInt(all[i][j]);
+                    }
+                }
+                    k+='<td>';
+                        k+= '<button type="button" class="btn btn-warning" data-url=" ' + i + ' " id="row-del">';
+                            k+= 'Delete';
+                        k+= '</button>';    
+                    k+= '</td>';      
+                k+= '</tr>';
+                count++;
+            }
+            k+='</tbody>';
+            $('#tableData').html(k);
+            $("#totalamount").val(calc_total_amount);
+            //alert("all returns" + all[0].constructor === Array)
+
+        }
+        $(document).on('click', '#cancel-quotation', function(){
+            all.length = 0;
+            $('#tableData').html('');
+            $("#material").val('')
+            $("#units").val('')
+            $("#rate").val('')
+            $("#discountpercentage").val('')
+            $("#discountamount").val('')
+            $("#netamount").val('')
+            $("#totaldiscountpercentage").val('')
+            $("#totaldiscountamount").val('')
+            $("#totalamount").val('')
+            $("#remarks").val('NIL')
+        });
+        //Ajax
+        $(document).on('submit', '#quotation-form',function(e){
+            var q1 = $("#customerselected").val()
+            var q2 = $("#date").val()
+            var q3 = $("#totaldiscountpercentage").val()
+            if(q3=='')
+            {
+                $("#totaldiscountpercentage").val(0)
+                q3=$("#totaldiscountpercentage").val()
+            }
+            if(!(numberRegex.test(q3)))
+            {
+                alert("Discount should be numeric*")
+                return false;
+            }
+            var q4 = $("#totaldiscountamount").val()
+            var q5 = $("#totalamount").val()
+            var q6 = $("#remarks").val()
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        var newArr = [];
+        for(var i = 0; i < all.length; i++)
+        {
+            newArr = newArr.concat(all[i]);
+        }
+        
+        $.ajax({
+            type:'POST',
+            url:'{% url "dashboard-quotations-create" %}',
+            data:{
+                'quotation_details[]': newArr,
+                'customer': q1,
+                'date': q2,
+                'totaldiscountpercentage': q3,
+                'totaldiscountamount': q4,
+                'totalamount': q5,
+                'remarks': q6,
+                csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val(),
+                action: 'post'
+            },
+            success:function(json,response_data){
+                alert("submitted success")
+            },
+            error : function(xhr,errmsg,err) {
+                console.log(xhr.status + ": " + xhr.responseText); 
+            }
+        });
+    });
+     });
+
+   
+   
+</script>
+
+{% endblock %}
+
+{% endblock %}

@@ -1,0 +1,43 @@
+<form method="POST" class="updateRow" data-url="{% url 'dashboard-invoices-details-update' ob.id %}">
+    {% csrf_token %}
+    <div class="modal-header">
+      <h5 class="modal-title" id="exampleModalLabel">Update Row</h5>
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body">
+        <div class="form-row form-group" style="padding-bottom: 50px !important;">
+            <div class="col-md-4">
+                <label for="material">Description</label>
+                <input type="text" value="{{ob.description}}" class="form-control" id="materialupdate" required>
+            </div>
+            <div class="col-md-4">
+                <label for="units">Units</label>
+                <input type="text" value="{{ob.unit}}" class="form-control" id="unitsupdate" required>
+            </div>
+            <div class="col-md-4">
+                <label for="rate">Rate</label>
+                <input type="text" value="{{ob.rate}}" class="form-control" id="rateupdate" required>
+            </div>
+        </div>
+        <div class="form-row form-group">
+            <div class="col-md-4">
+                <label for="discountpercentage">Discount %</label>
+                <input type="text" value="{{ob.discount_percentage}}" class="form-control" id="discountpercentageupdate">
+            </div>
+            <div class="col-md-4">
+                <label for="discountamount">Discount Amount</label>
+                <input type="text" class="form-control" id="discountamountupdate" value="{{ob.discount_amount}}"  disabled>
+            </div>
+            <div class="col-md-4">
+                <label for="netamount">Net Amount</label>
+                <input type="text" value="{{ob.net_amount}}" class="form-control" id="netamountupdate"  disabled>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      <button type="submit" class="btn btn-danger" style="padding-left: 50px !important;padding-right: 50px !important;"><strong class="text-bold">+</strong></button>
+    </div>
+    </form>

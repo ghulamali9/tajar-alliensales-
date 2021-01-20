@@ -1,0 +1,22 @@
+{% if desg %}
+{% for i in desg %}
+<tr>
+    <td>{{forloop.counter}}</td>
+        <td>{{i.designation}}</td>
+        <td>
+            <button type="button" class="btn btn-warning show-form-update"   data-target="#modal-user" data-url="{% url 'dashboard-designation-update' i.id %}">
+                Edit
+            </button>
+        </td>
+        <td>
+            <button type="button" class="btn btn-danger show-form-delete"   data-target="#modal-user" data-url="{% url 'dashboard-designation-delete' i.id %}">
+                Delete
+            </button>
+        </td>
+</tr>
+{% endfor %}
+{% else %}
+<tr>
+    No data to show
+</tr>
+{% endif %}        

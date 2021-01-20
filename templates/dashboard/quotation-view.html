@@ -1,0 +1,574 @@
+{% extends 'dashboard/base.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+<div class="container-fluid">
+    <div class="block-header">
+        <h2>DASHBOARD/Customers</h2>
+    </div>
+    <div class="container-fluid">
+        <!-- Basic Examples -->
+        <div class="row clearfix">
+            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                <div class="card">
+                    <div class="header">
+                        <h2>
+                            Existing Quotations
+                        </h2>
+                        <ul class="header-dropdown m-r--5">
+                            <li class="dropdown">
+                                <a href="javascript:void(0);" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                                    <i class="material-icons">more_vert</i>
+                                </a>
+                                <ul class="dropdown-menu pull-right">
+                                    <li><a href="javascript:void(0);">Action</a></li>
+                                    <li><a href="javascript:void(0);">Another action</a></li>
+                                    <li><a href="javascript:void(0);">Something else here</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped table-hover js-basic-example dataTable js-exportable" id="tableDataMain">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Date</th>
+                                        <th>Customer</th>
+                                        <th>Discount %</th>
+                                        <th>Discount Amount</th>
+                                        <th>Total</th>
+                                        <th colspan="2">Action</th>
+                                        <th>Generate</th>
+                                        <th>Print Preview</th>
+                                    </tr>
+                                </thead>
+                                <tfoot>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Date</th>
+                                        <th>Customer</th>
+                                        <th>Discount %</th>
+                                        <th>Discount Amount</th>
+                                        <th>Total</th>
+                                        <th colspan="2">Action</th>
+                                        <th>Generate</th>
+                                        <th>Preview</th>
+                                    </tr>
+                                </tfoot>
+                                <tbody id="quotations-table">
+                                    {% for i in quotations %}
+                                    <tr>
+                                        <td>{{forloop.counter}}</td>
+                                        <td>{{i.date}}</td>
+                                        <td>{{i.customer_name}}</td>
+                                        <td>{{i.total_discount_percentage}}</td>
+                                        <td>{{i.total_discount_amount}}</td>
+                                        <td>{{i.total_amount}}</td>
+                                        <td>
+                                            <button type="button" type="button"  class="btn btn-primary" id="form-edit" data-url="{% url 'dashboard-quotations-update' i.id %}" data-toggle="modal" data-target="#update-quotation">
+                                                Edit
+                                            </button>
+                                        </td>
+                                        <td >
+                                            <button type="button" class="btn btn-danger show-form-delete" id="form-delete"   data-toggle="modal" data-target="#update-quotation" data-url="{% url 'dashboard-quotations-delete' i.id %}">
+                                                Delete
+                                            </button>
+                                        </td>
+                                        <td><a href="#">Generate Invoice</a></td>
+                                        <td><a href="{% url 'dashboard-quotations-print' i.id %}">Print Preview</a></td>
+                                    </tr>
+                                    {% endfor %}                      
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- #END# Basic Examples -->        
+    </div>
+</div>
+
+  <!-- Modal -->
+  <div class="modal fade" id="update-quotation" tabindex="-1" role="dialog" aria-labelledby="update_quotationLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content" style="background-color: #E7E7E7;">
+      
+      </div>
+    </div>
+</div>
+
+  <!-- Modal -->
+  <div class="modal fade" id="addRow" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content" style="background-color: #E7E7E7;">
+        <form method='post' id="newRow">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">New Rows</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+            <div class="form-row form-group" style="padding-bottom: 50px !important;">
+                <div class="col-md-4">
+                    <label for="material">Material</label>
+                    <input type="text" class="form-control" id="material" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="units">Units</label>
+                    <input type="text" class="form-control" id="units" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="rate">Rate</label>
+                    <input type="text" class="form-control" id="rate" required>
+                </div>
+            </div>
+            <div class="form-row form-group">
+                <div class="col-md-4">
+                    <label for="discountpercentage">Discount %</label>
+                    <input type="text" class="form-control" id="discountpercentage" value="0">
+                </div>
+                <div class="col-md-4">
+                    <label for="discountamount">Discount Amount</label>
+                    <input type="text" class="form-control" id="discountamount" value="0"  disabled>
+                </div>
+                <div class="col-md-4">
+                    <label for="netamount">Net Amount</label>
+                    <input type="text" value="0" class="form-control" id="netamount"  disabled>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-danger" style="padding-left: 50px !important;padding-right: 50px !important;"><strong class="text-bold">+</strong></button>
+        </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+     <!-- Modal -->
+     <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+          <div class="modal-content" style="background-color: #E7E7E7;">
+          
+          </div>
+        </div>
+      </div>
+
+{% block JavaScript %}
+<script>
+$(document).ready(function(){
+    //keyup row save calculations
+    var rate = $("#rate");
+    rate.keyup(function(){
+        var total = isNaN(parseInt(rate.val() * $("#units").val())) ? 0 :(rate.val()* $("#units").val());
+        $("#netamount").val(total);   
+    });
+    var disp = $("#discountpercentage");
+    disp.keyup(function(){
+        var total = isNaN(parseInt($("#rate").val()* $("#units").val())) ? 0 :($("#rate").val()* $("#units").val());
+        var disa = (total * disp.val()/100)
+        total = total - disa
+        $("#discountamount").val(disa)
+        $("#netamount").val(total)
+    });
+    //Delete Quotations get modal
+    $(document).on('click','#form-delete',function(e){
+        var url = $(this).attr('data-url');
+        $.ajax({
+            type: 'GET',
+            url: url,
+            dataType: 'json',
+            success: function(data){
+                $("#update-quotation .modal-content").html(data.html_form);
+            },
+            error: function(xhr,errmsg,err){
+                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+            }
+        });
+    });
+    //Delete Quotation
+    $(document).on('submit','#delete-form',function(e){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        var url = $("#delete-form").attr('data-url');
+        $.ajax({
+            type:'post',
+            url: url,
+            data:{
+                csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val(),
+                action: 'post'
+            },
+            success:function(json){
+                alert("Deleted Successfully")
+                getAllQuotations()
+                $('#update-quotation').modal('hide');
+            },
+            error : function(xhr,errmsg,err) {
+                alert("something went wrong")
+                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+            }
+        });
+    });
+    //Get Quotations|QuotaitonsDetails
+    $(document).on('click','#form-edit',function(e){
+        var url = $(this).attr('data-url');
+        $.ajax({
+            type: 'GET',
+            url: url,
+            dataType: 'json',
+            success: function(data){
+                $("#update-quotation .modal-content").html(data.html_data);
+                getQuotationsData();
+                QuotationsCalculations();
+            },
+            error: function(xhr,errmsg,err){
+                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+            }
+        });
+    });
+    //update quotation 
+    $(document).on('submit','#update-form',function(e){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        QuotationsCalculations();
+        var url = $("#update-form").attr('data-url');
+        $.ajax({
+            type:'post',
+            url: url,
+            data:{
+                date:$("#date").val(),
+                totaldiscountpercentage:$("#totaldiscountpercentage").val(),
+                totaldiscountamount:$("#totaldiscountamount").val(),
+                totalamount:$("#totalamount").val(),
+                csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val(),
+                action: 'post'
+            },
+            success:function(json){
+                alert("submitted success")
+                getAllQuotations()
+                $('#update-quotation').modal('hide');
+            },
+            error : function(xhr,errmsg,err) {
+                alert("something went wrong")
+                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+            }
+        });
+    });
+    // Add new row 
+    $(document).on('submit', '#newRow',function(e){
+        QuotationsCalculations();
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        var customer_id = $("#row_customer_id").attr("data")
+        $.ajax({
+            type:'POST',
+            url:'{% url "dashboard-quotations-details-create" %}',
+            data:{
+                customerid:customer_id,
+                material:$('#material').val(),
+                units:$('#units').val(),
+                rate:$('#rate').val(),
+                discountpercent:$('#discountpercentage').val(),
+                discountamount:$('#discountamount').val(),
+                netamount:$('#netamount').val(),
+                csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val(),
+                action: 'post'
+            },
+            success:function(json){
+                alert("submitted success")
+                getQuotationsData()
+                ShowRowsTable()
+                $('#addRow').modal('hide');
+            },
+            error : function(xhr,errmsg,err) {
+                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+            }
+        });
+    });
+    //get rows 
+    function ShowRowsTable(){
+        var customer_id = $("#row_customer_id").attr("data")
+        var url = '/quotations-details-view/0'.replace('0', customer_id)
+        $.ajax({
+            url: url,
+            dataType: 'json',
+            type: 'GET',
+            success: function(response){
+                tableFromResponse(response);
+                console.log("Data got successfully")
+            },
+            error: function(response){
+                console.log("Enable to get data");
+            }
+        });
+        function tableFromResponse(responseData) {
+            var mainObj = JSON.parse(responseData.data);
+            var count = 0;    
+            var k = '<thead>';
+                k+= '<tr>';                            
+                    k+= '<th>#</th>';                        
+                    k+= '<th>Material</th>';
+                    k+= '<th>Units</th>';
+                    k+= '<th>Rate</th>';
+                    k+= '<th>Discount Percentage</th>';
+                    k+= '<th>Discount Amount</th>';
+                    k+= '<th>Net Amount</th>';                        
+                    k+= '<th colspan="2">Action</th>'                        
+                k+= '</tr>';                        
+            k+= '</thead>';
+            k += '<tbody id="rows-table">';                        
+            for(i = 0;i < mainObj.length; i++){
+          
+                k+= '<tr>';
+                    k+= '<td>' + count + '</td>';
+                    k+= '<td>' + mainObj[i]["fields"]["material"] + '</td>';
+                    k+= '<td>' + mainObj[i]["fields"]["unit"] + '</td>';
+                    k+= '<td>' + mainObj[i]["fields"]["rate"] + '</td>';
+                    k+= '<td>' + mainObj[i]["fields"]["discount_percentage"] + '</td>';
+                    k+= '<td>' + mainObj[i]["fields"]["discount_amount"] + '</td>';
+                    k+= '<td>' + mainObj[i]["fields"]["net_amount"] + '</td>';
+                    k+='<td>';
+                        k+= '<button type="button" class="btn btn-warning ">';
+                            k+= 'Edit';
+                        k+= '</button>';    
+                    k+= '</td>'; 
+                    k+='<td>';
+                        k+= '<button type="button" class="btn btn-danger ">';
+                            k+= 'Delete';
+                        k+= '</button>';    
+                    k+= '</td>';     
+                k+= '</tr>';
+                count++;
+            }
+            k+='</tbody>';
+            $('#tableData').html(k);
+        }
+    }
+    //fetch row data on modal form-delete
+    $(document).on('click','.delete-row',function(e){
+        var url = $(this).attr('data-url');
+        $.ajax({
+            type: 'GET',
+            url: url,
+            dataType: 'json',
+            success: function(data){
+                $("#exampleModal .modal-content").html(data.html_data);
+                rowUpdateCalc();
+            },
+            error: function(data){
+                alert("something went wrong");
+            }
+        });
+    });
+    //fetch row data on modal form
+    $(document).on('click','.update-row',function(e){
+        var url = $(this).attr('data-url');
+        $.ajax({
+            type: 'GET',
+            url: url,
+            dataType: 'json',
+            success: function(data){
+                $("#exampleModal .modal-content").html(data.html_data);
+                rowUpdateCalc();
+            },
+            error: function(data){
+                alert("something went wrong");
+            }
+        });
+    });
+    //keyup row update calculations
+    rowUpdateCalc();
+    function rowUpdateCalc()
+    {
+        var rateupdate = $("#rateupdate");
+    rateupdate.keyup(function(){
+        var totalupdate = isNaN(parseInt(rateupdate.val() * $("#unitsupdate").val())) ? 0 :(rateupdate.val()* $("#unitsupdate").val());
+        $("#netamountupdate").val(totalupdate);   
+    });
+    var dispupdate = $("#discountpercentageupdate");
+    dispupdate.keyup(function(){
+        var totalupdate = isNaN(parseInt($("#rateupdate").val()* $("#unitsupdate").val())) ? 0 :($("#rateupdate").val()* $("#unitsupdate").val());
+        var disaupdate = (totalupdate * dispupdate.val()/100)
+        totalupdate = totalupdate - disaupdate
+        $("#discountamountupdate").val(disaupdate)
+        $("#netamountupdate").val(totalupdate)
+    });
+    }
+    //delete rows 
+    $(document).on('submit','.deleteRow',function(e){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        rowUpdateCalc();
+        var url = $(".deleteRow").attr('data-url');
+        $.ajax({
+            type:'post',
+            url: url,
+            data:{
+                csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val(),
+                action: 'post'
+            },
+            success:function(json){
+                alert("submitted success")
+                getQuotationsData()
+                ShowRowsTable()
+                $('#exampleModal').modal('hide');
+            },
+            error : function(xhr,errmsg,err) {
+                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+            }
+        });
+    });
+    //update rows 
+    $(document).on('submit','.updateRow',function(e){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        rowUpdateCalc();
+        var url = $(".updateRow").attr('data-url');
+        $.ajax({
+            type:'post',
+            url: url,
+            data:{
+                material:$('#materialupdate').val(),
+                units:$('#unitsupdate').val(),
+                rate:$('#rateupdate').val(),
+                discountpercent:$('#discountpercentageupdate').val(),
+                discountamount:$('#discountamountupdate').val(),
+                netamount:$('#netamountupdate').val(),
+                csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val(),
+                action: 'post'
+            },
+            success:function(json){
+                alert("submitted success")
+                getQuotationsData()
+                ShowRowsTable()
+                $('#exampleModal').modal('hide');
+            },
+            error : function(xhr,errmsg,err) {
+                console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+            }
+        });
+    });
+    //get updated totalamount
+    function getQuotationsData()
+    {
+        var customer_id = $("#row_customer_id").attr("data");
+        var url = '/quotations-details-sum/0'.replace('0',customer_id);
+        $.ajax({
+            type: 'GET',
+            url: url,
+            dataType: 'json',
+            success: function(totalamount){
+                var newtotalamount=totalamount.net_amount__sum
+                $("#hiddentotal").val(newtotalamount)
+                var discountpercent=$("#totaldiscountpercentage").val()
+                var discountamount=(newtotalamount*(discountpercent/100))
+                var total=newtotalamount-discountamount
+                $("#totalamount").val(total)
+                $("#totaldiscountamount").val(discountamount)
+            },
+            error: function(xhr,errmsg,err){
+                console.log(xhr.status + ": " + xhr.responseText);
+            }
+        });
+    }
+    function getAllQuotations()
+    {
+        var url = '/quotations-table/'
+        $.ajax({
+            url: url,
+            dataType: 'json',
+            type: 'GET',
+            success: function(response){
+                tableFromResponse(response);
+                console.log("Data got successfully")
+            },
+            error: function(response){
+                console.log("Enable to get data");
+            }
+        });
+        function tableFromResponse(responseData) {
+            var mainObj = JSON.parse(responseData.data);
+            var count = 1;    
+            var printq = "{% url 'dashboard-quotations-print' 0 %}"
+            var urlu = "{% url 'dashboard-quotations-update' 0 %}"
+            var urld = "{% url 'dashboard-quotations-delete' 0 %}"     
+            var k = '<thead>';
+                k+= '<tr>';                            
+                    k+= '<th>#</th>';                 
+                    k+= '<th>Date</th>';
+                    k+= '<th>Customer</th>';
+                    k+= '<th>Discount %</th>';
+                    k+= '<th>Discount Amount</th>';
+                    k+= '<th>Total</th>';                        
+                    k+= '<th colspan="2">Action</th>';
+                    k+= '<th>Generate</th>';
+                    k+= '<th>Print Preview</th>';                        
+                k+= '</tr>';                        
+            k+= '</thead>';
+            k+= '<tfoot>';
+                k+= '<tr>';                            
+                    k+= '<th>#</th>';                 
+                    k+= '<th>Date</th>';
+                    k+= '<th>Customer</th>';
+                    k+= '<th>Discount %</th>';
+                    k+= '<th>Discount Amount</th>';
+                    k+= '<th>Total</th>';                        
+                    k+= '<th colspan="2">Action</th>';
+                    k+= '<th>Generate</th>';
+                    k+= '<th>Print Preview</th>';                        
+                k+= '</tr>';                        
+            k+= '</tfoot>';
+            k += '<tbody id="quotations-table">';                        
+            for(i = 0;i < mainObj.length; i++){
+          
+                k+= '<tr>';
+                    k+= '<td>' + count + '</td>';
+                    k+= '<td>' + mainObj[i]["fields"]["date"] + '</td>';
+                    k+= '<td>' + mainObj[i]["fields"]["customer_name"] + '</td>';
+                    k+= '<td>' + mainObj[i]["fields"]["total_discount_percentage"] + '</td>';
+                    k+= '<td>' + mainObj[i]["fields"]["total_discount_amount"] + '</td>';
+                    k+= '<td>' + mainObj[i]["fields"]["total_amount"] + '</td>';
+                    k+='<td>';
+                        k+= '<button type="button" type="button"  class="btn btn-primary" id="form-edit"  data-toggle="modal" data-target="#update-quotation" data-url=' + urlu.replace('0', mainObj[i]["pk"]) + '>';
+                            k+= 'Edit';
+                        k+= '</button>';    
+                    k+= '</td>'; 
+                    k+='<td>';
+                        k+= '<button type="button" class="btn btn-danger id="form-delete"  data-toggle="modal" data-target="#update-quotation" data-url=' + urld.replace('0', mainObj[i]["pk"]) + '>';
+                            k+= 'Delete';
+                        k+= '</button>';    
+                    k+= '</td>';    
+                    k+= '<td><a href="#">Generate Invoice</a></td>';
+                    k+= '<td><a href='+ printq.replace('0', mainObj[i]["pk"]) +'>Print Preview</a></td>'; 
+                k+= '</tr>';
+                count++;
+            }
+            k+='</tbody>';
+            $('#tableDataMain').html(k);
+        }
+    }
+    //quotation keyup calculations
+    function QuotationsCalculations()
+    {
+        getQuotationsData()
+        var discountpercent = $("#totaldiscountpercentage")
+        discountpercent.keyup(function(){
+            var oldtotalamount = $("#hiddentotal").val();
+            console.log(oldtotalamount)
+            var discountamount = (oldtotalamount * discountpercent.val()/100);
+            newtotalamount = oldtotalamount - discountamount
+            $("#totaldiscountamount").val(discountamount)
+            $("#totalamount").val(newtotalamount)
+        });
+    }
+});
+
+</script>
+
+{% endblock %}
+
+{% endblock %}

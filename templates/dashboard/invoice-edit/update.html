@@ -1,0 +1,128 @@
+<form  method="POST" id="update-form" data-url="{% url 'dashboard-invoices-update' quot.id %}">
+    {% csrf_token %}
+    <div class="modal-header">
+      <h5 class="modal-title" id="update_quotationLabel">Generate Quotation</h5>
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body">
+        <div class="form-row form-group" style="padding-bottom: 50px !important;">
+            <div class="col-md-3">
+                <label for="customer">Select Customer</label>
+                <select class="form-control" id="customer" required>
+                    {% for i in customers %}
+                    {% if i != quot.customer_name %}
+                    <option value="{{i.id}}">{{i.customer_name}}</option>
+                    {% else %}
+                    <option value="{{i.id}}" selected>{{quot.customer_name}}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>            
+            <div class="col-md-3">
+                <label for="totaldiscountpercentage">Discount % on Total</label>
+                <input type="text" class="form-control" value="{{quot.total_discount_percentage}}" id="totaldiscountpercentage" >
+            </div>
+            <div class="col-md-3">
+                <label for="totaldiscountamount">Discount Amount</label>
+                <input type="text" class="form-control" value="{{quot.total_discount_amount}}" id="totaldiscountamount" disabled>
+            </div>
+            <div class="col-md-3">
+                <label for="totalamount">Total Amount</label>
+                <input type="text" class="form-control" value="{{quot.total_amount}}" id="totalamount"  disabled>
+            </div>
+        </div>
+        <div class="form-row form-group" style="padding-bottom: 50px !important;">
+            <div class="col-md-3">
+                <label for="total_net_amount">Net Amount</label>
+                <input type="text" value="{{quot.net_amount}}" class="form-control" id="total_net_amount" disabled>
+            </div>
+            <div class="col-md-3">
+                <label for="delivery">Delivery</label>
+                <input type="text" value="{{quot.delivery}}" class="form-control" id="delivery" >
+            </div>
+            <div class="col-md-3">
+                <label for="invoicevalid">Invoice Valid</label>
+                <input type="text" value="{{quot.invoice_valid}}" class="form-control" id="invoicevalid">
+            </div>
+            <div class="col-md-3">
+                <label for="lpo">LPO Number</label>
+                <input type="text" value="{{quot.lpo_number}}" class="form-control" id="lpo">
+            </div>
+        </div>
+        <div class="form-row form-group" style="padding-bottom: 50px !important;">
+            <div class="col-md-4">
+                <label for="date">Date</label>
+                <input type="date" value="{{quot.date | date:'Y-m-d'}}" class="form-control" id="date" required>
+            </div>
+            <div class="col-md-4">
+                <label for="remarks">Remarks</label>
+                <input type="text" value="{{quot.remarks}}" class="form-control" id="remarks">
+            </div>
+            <div class="col-md-4">
+                <label for="paymentremarks">Payment Remarks</label>
+                <input type="text" value="{{quot.payment_remarks}}" class="form-control" id="paymentremarks">
+            </div>
+        </div>
+    
+        <div class="container-fluid">
+            <!-- Basic Examples -->
+            <div class="row clearfix">
+                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                    <div class="card">
+                        <div class="body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-striped table-hover js-basic-example dataTable" id="tableData">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>                        
+                                            <th>Material</th>
+                                            <th>Units</th>
+                                            <th>Rate</th>
+                                            <th>Discount Percentage</th>
+                                            <th>Discount Amount</th>
+                                            <th>Net Amount</th>                     
+                                            <th colspan="2">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="rows-table">
+                                        {% for i in rows %}
+                                        <tr>
+                                          <td>{{forloop.counter}}</td>
+                                          <td>{{i.description}}</td>
+                                          <td>{{i.unit}}</td>
+                                          <td>{{i.rate}}</td>
+                                          <td>{{i.discount_percentage}}</td>
+                                          <td>{{i.discount_amount}}</td>
+                                          <td>{{i.net_amount}}</td>
+                                          <td>
+                                            <button type="button" class="btn btn-warning update-row" data-url="{% url 'dashboard-invoices-details-update' i.id %}" data-toggle="modal" data-target="#exampleModal">
+                                              Edit
+                                            </button>
+                                          </td>
+                                          <td>
+                                            <button type="button" class="btn btn-danger delete-row" data-url="{% url 'dashboard-invoices-details-delete' i.id %}" data-toggle="modal" data-target="#exampleModal">
+                                              Delete
+                                            </button>
+                                          </td>
+                                        </tr>
+                                        {% endfor %}       
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- #END# Basic Examples -->        
+        </div>
+    
+    </div>
+    <div class="modal-footer">
+      <input type="hidden" value="{{total.net_amount__sum}}" id="hiddentotal">
+      <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      <button type="button" class="btn btn-primary" id="row_customer_id" data="{{quot.id}}" data-toggle="modal" data-target="#addRow">Add New Row</button>
+      <button type="submit" class="btn btn-primary">Save changes</button>
+    </div>
+    </form>

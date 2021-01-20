@@ -1,0 +1,175 @@
+{% extends 'dashboard/base.html' %}
+{% block content %}
+    <div class="container-fluid">
+        <!-- Basic Examples -->
+        <div class="row clearfix" id="printable">
+            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                <div class="card">
+                    <div class="header">
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <h2 class="text-center">
+                                Quotation
+                            </h2>
+                        </div>
+                    </div>
+                    <div class="body">
+                        <div class="row">
+                            <div class="col-xs-2">
+                                Quotation Ref:
+                            </div>
+                            <div class="col-xs-5" style="border-bottom:1px solid !important;">
+                                SMS/{{quotation.date | date:'Y/m/d'}}
+                            </div>
+                            <div class="col-xs-1">
+                                Date:
+                            </div>
+                            <div class="col-xs-4" style="border-bottom:1px solid !important;">
+                                {{quotation.date | date:'Y-m-d'}}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-2">
+                                Company:
+                            </div>
+                            <div class="col-xs-10" style="border-bottom:1px solid !important;">
+                                {{quotation.customer_name}}
+                            </div>
+                        </div>  
+                        <div class="row">
+                            <div class="col-xs-2">
+                                Attention:
+                            </div>
+                            <div class="col-xs-4" style="border-bottom:1px solid !important;">
+                                Ghulam Ali
+                            </div>
+                            <div class="col-xs-2">
+                                Designation:
+                            </div>
+                            <div class="col-xs-4" style="border-bottom:1px solid !important;">
+                                CEO
+                            </div>
+                        </div>   
+                        <div class="row">
+                            <div class="col-xs-2">
+                                Tel:
+                            </div>
+                            <div class="col-xs-4" style="border-bottom:1px solid !important;">
+                                +923063794828
+                            </div>
+                            <div class="col-xs-2">
+                                Email:
+                            </div>
+                            <div class="col-xs-4" style="border-bottom:1px solid !important;">
+                                ali@gmail.com
+                            </div>
+                        </div>   
+                        <div class="row">
+                            <div class="col-xs-2">
+                                Subject:
+                            </div>
+                            <div class="col-xs-10" style="border-bottom:1px solid !important;">
+                                &nbsp
+                            </div>
+                        </div> 
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <p>Dear Sir,</p>
+                                <p><b>Reference to above inquiry,we are pleased to quote you the best competitive price as under.</b></p>
+                            </div>
+                        </div>      
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <table border="1" width="100%">
+                                    <thead>
+                                        <tr>
+                                            <th width="50px">Sr#</th>
+                                            <th >Description</th>
+                                            <th width="50px">Unit</th>
+                                            <th width="50px">Rate</th>
+                                            <th width="70px">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for i in rows %}
+                                        <tr>
+                                            <td>{{forloop.counter}}</td>
+                                            <td>{{i.material}}</td>
+                                            <td>{{i.unit}}</td>
+                                            <td>{{i.rate}}</td>
+                                            <td>{{i.net_amount}}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <table border="1" width="100%" height="60px" style="margin-bottom:20px !important;">
+                                <tbody>
+                                    <tr>
+                                        <td width="200px" style="border:1px solid !important;">Total:</td>
+                                        <td style="border:1px solid !important;">&nbsp</td>
+                                        <td width="150px" style="border:1px solid !important;">{{totalamount.net_amount__sum}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td width="200px" style="border:1px solid !important;">Discount:</td>
+                                        <td style="border:1px solid !important;">&nbsp</td>
+                                        <td width="150px" style="border:1px solid !important;">{{quotation.total_discount_percentage}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td width="200px" style="border:1px solid !important;">Net Total:</td>
+                                        <td style="border:1px solid !important;" id="words">TWENTY SEVEN THOUSANDS AND FIVE HUNDREDS</td>
+                                        <td width="150px" style="border:1px solid !important;" id="digits">{{quotation.total_amount}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td width="200px" style="border:1px solid !important;">&nbsp</td>
+                                    </tr>
+                                </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="container-fluid">
+                            <p>Payment:</p>
+                            <p>Delivery:</p>
+                            <p>Quotation Valid:</p>
+                            <p>Remarks: {{quotation.remarks}}</p>
+                            <br>
+                            <br>
+                            <br>
+                            <p>Regards</p>
+                            <p>Ali</p>
+                            <p>Mananger</p>
+                        </div>
+                    </div>    
+                </div>
+            </div>
+            
+        </div>
+        <button class="btn btn-primary" id="printbtn">print</button>
+        <!-- #END# Basic Examples -->
+        
+    </div>
+{% block JavaScript %}
+    <script>
+        
+        $(document).ready(function(){
+            $("#printbtn").click(function(){
+                $("#printable").printThis();
+            })            
+            var d = numberToWords($("#digits").text())
+            function numberToWords(number) {  
+                var digit = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];  
+                var elevenSeries = ['ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];  
+                var countingByTens = ['twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];  
+                var shortScale = ['', 'thousand', 'million', 'billion', 'trillion'];  
+                number = number.toString(); number = number.replace(/[\, ]/g, ''); if (number != parseFloat(number)) return 'not a number'; var x = number.indexOf('.'); if (x == -1) x = number.length; if (x > 15) return 'too big'; var n = number.split(''); var str = ''; var sk = 0; for (var i = 0; i < x; i++) { if ((x - i) % 3 == 2) { if (n[i] == '1') { str += elevenSeries[Number(n[i + 1])] + ' '; i++; sk = 1; } else if (n[i] != 0) { str += countingByTens[n[i] - 2] + ' '; sk = 1; } } else if (n[i] != 0) { str += digit[n[i]] + ' '; if ((x - i) % 3 == 0) str += 'hundred '; sk = 1; } if ((x - i) % 3 == 1) { if (sk) str += shortScale[(x - i - 1) / 3] + ' '; sk = 0; } } if (x != number.length) { var y = number.length; str += 'point '; for (var i = x + 1; i < y; i++) str += digit[n[i]] + ' '; } str = str.replace(/\number+/g, ' '); return str.trim() + ".";  
+            } 
+            $("#words").text(d)
+        })
+    </script>
+{% endblock %}
+    
+{% endblock %}

@@ -1,0 +1,307 @@
+{% extends 'dashboard/base.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+<div class="container-fluid">
+    <div class="block-header">
+        <h2>DASHBOARD/Receipt Voucher</h2>
+    </div>
+    <div class="container-fluid">
+        <div class="alert alert-success" style="display: none;"></div>
+        <div class="alert alert-danger" style="display: none;"></div>
+            <div class="form-row form-group" >
+                <div class="col-md-3" style="padding-bottom: 10px !important;">
+                    <label for="voucher_id">Voucher#</label>
+                    <input type="text" value="{{vouchers}}" class="form-control" id="voucher_id" disabled>
+                </div>
+                <div class="col-md-3" style="padding-bottom: 10px !important;">
+                    <label for="date">Date</label>
+                    <input type="date" class="form-control" id="date" required>
+                </div>
+                <div class="col-md-3" style="padding-bottom: 10px !important;">
+                    <label for="customer">Select Customer</label>
+                    <select class="form-control" id="customer" required>
+                        {% for i in customers %}
+                        <option value="{{i.id}}">{{i.customer_name}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3" style="padding-bottom: 10px !important;">
+                    <label for="remarks">Remarks</label>
+                    <input type="text" class="form-control" id="remarks" required>
+                </div>
+                <div class="col-md-3" style="padding-bottom: 10px !important;">
+                    <label for="units">Amount</label>
+                    <input type="text" class="form-control" id="amount" required>
+                </div>
+                <div class="col-md-3" style="padding-bottom: 10px !important;">
+                    <label for="plusbtn">Add Voucher</label><br>
+                    <input type="hidden" id="hidden_total">
+                    <button type="button" id="add_voucher" class="btn btn-danger " style="padding-left: 50px !important;padding-right: 50px !important;"> <strong >  +  </strong> </button>
+                </div>
+            </div>
+    </div>
+    <hr>
+    <div class="container-fluid " >
+        <div class="body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover js-basic-example dataTable" id="tableData">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Date</th>
+                            <th>Account</th>
+                            <th>Remarks</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="row-table">                    
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td>
+                                <b>Total Amount: </b>
+                                <span id="total_amount">0</span>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% block JavaScript %}
+<script>
+$(document).ready(function(){
+    var numberRegex = /^[+-]?\d+(\.\d+)?([eE][+-]?\d+)?$/;
+    var itemList=[]
+    $("#add_voucher").on('click', function(){
+        customer=$("#customer")
+        date=$("#date")
+        amount=$("#amount")
+        remarks=$("#remarks")
+        result=0
+        if(customer.val()=='')
+        {
+            customer.attr('style','border:1px solid #864545!important')
+        }
+        else
+        {
+            customer.removeAttr('style','border:1px solid #864545!important')
+            result+=1
+        }
+        if(date.val()=='')
+        {
+            date.attr('style','border:1px solid #864545!important')
+        }
+        else
+        {
+            date.removeAttr('style','border:1px solid #864545!important')
+            result+=1
+        }
+        if(amount.val()=='')
+        {
+            amount.attr('style','border:1px solid #864545!important')
+        }
+        else
+        {
+            amount.removeAttr('style','border:1px solid #864545!important')
+            result+=1
+        }
+        if(remarks.val()=='')
+        {
+            remarks.attr('style','border:1px solid #864545!important')
+        }
+        else
+        {
+            remarks.removeAttr('style','border:1px solid #864545!important')
+            result+=1
+        }
+        if(result==4)
+        {
+            if(!(numberRegex.test(amount.val())))
+            {
+                alert("invalid amount entered")
+            }else{
+                var row=[date.val(),customer.val(),remarks.val(),amount.val()]
+                itemList.push(row)
+                vouchersList()
+            }
+        }
+    });
+    //save vouchers
+    $(document).on('submit','.save-voucher',function(e){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        var newArr = [];
+        for(var i = 0; i < itemList.length; i++)
+        {
+            newArr = newArr.concat(itemList[i]);
+        }
+        $.ajax({
+            type:'POST',
+            url:"{% url 'dashboard-receipt-voucher' %}",
+            data:{
+                'vouchers_list[]':newArr ,
+                'total_amount':$("#hidden_total").val(),
+                'customer':$("#customer").val(),
+                csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val(),
+                action: 'post'
+            },
+            success:function(json,response_data){
+                vouchercount();
+                itemList.length = 0;
+                $("#amount").val('')
+                $("#remarks").val('')
+                vouchersList()
+                $("#footer").attr('style','display:none !important;')
+                $('.alert-success').html('Data successfully added').fadeIn().delay(8000).fadeOut('slow');
+            },
+            error : function(xhr,errmsg,err) {
+                $('.alert-danger').html('Something went wrong').fadeIn().delay(8000).fadeOut('slow');
+            }
+        });
+    });
+    //save and print 
+    $(document).on('click','#save_print', function(e){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        var newArr = [];
+        for(var i = 0; i < itemList.length; i++)
+        {
+            newArr = newArr.concat(itemList[i]);
+        }
+        $.ajax({
+            type:'POST',
+            url:"{% url 'dashboard-receipt-voucher' %}",
+            data:{
+                'vouchers_list[]':newArr ,
+                'total_amount':$("#hidden_total").val(),
+                'customer':$("#customer").val(),
+                csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val(),
+                action: 'post'
+            },
+            success:function(json,response_data){
+                vouchercount();
+                itemList.length = 0;
+                $("#amount").val('')
+                $("#remarks").val('')
+                vouchersList()
+                $("#footer").attr('style','display:none !important;')
+                $('.alert-success').html('Data successfully added').fadeIn().delay(8000).fadeOut('slow');
+                latestvoucher()
+            },
+            error : function(xhr,errmsg,err) {
+                $('.alert-danger').html('Something went wrong').fadeIn().delay(8000).fadeOut('slow');
+            }
+        });
+    });
+    //latest voucher
+    function latestvoucher()
+    {
+        var url = '/latest-voucher/'
+        $.ajax({
+            type: 'GET',
+            url: url,
+            dataType: 'json',
+            success: function(response){
+                console.log(response)
+                var voucher = JSON.parse(response.data);
+                window.location.href = '/voucher-print/0'.replace('0',voucher)
+            },
+            error: function(xhr,errmsg,err){
+                console.log(xhr.status + ": " + xhr.responseText);
+            }
+        });
+    }
+    //voucher counts
+    function vouchercount()
+    {
+        var url = '/voucher-counts/0'.replace('0','receipt');
+        $.ajax({
+            type: 'GET',
+            url: url,
+            dataType: 'json',
+            success: function(context){
+                var count = parseInt(context.counts)+1;
+                $("#voucher_id").val(count);
+            },
+            error: function(xhr,errmsg,err){
+                console.log(xhr.status + ": " + xhr.responseText);
+            }
+        });
+    }
+    // vouchers table
+    function vouchersList()
+    {
+        var count=0
+        var calc_total_amount=0
+        
+        var k = '<thead>';
+                k+= '<tr>';                            
+                    k+= '<th>#</th>';                        
+                    k+= '<th>Date</th>';
+                    k+= '<th>Account</th>';
+                    k+= '<th>Remarks</th>';
+                    k+= '<th>Amount</th>';                       
+                k+= '</tr>';                        
+            k+= '</thead>';
+            k+= '<tfoot>';
+                    k+='<tr>';
+                        k+='<td></td>';
+                        k+='<td></td>';
+                        k+='<td></td>';
+                        k+='<td></td>';
+                        k+='<td>';
+                            k+='<b>'+'Total Amount: '+'</b>';
+                            k+='<span id="total_amount"></span>';
+                        k+='</td>';
+                    k+='</tr>';    
+                    k+= '<tr id="footer">';                            
+                        k+= '<th colspan="8" class="justify-content-center text-center">';
+                            k+='<form method="post" class="save-voucher">{% csrf_token %}<button type="button"  class="btn btn-primary" id="cancel"  style="margin-right:2px !important;">Cancel</button>';
+                            k+= '<button type="submit"  class="btn btn-primary " style="margin-right:2px !important;">Save</button>';
+                            k+='<button type="button" id="save_print"  class="btn btn-primary"  >Save & Print</button></form>';
+                        k+= '</th>';                                               
+                    k+= '</tr>';                        
+            k+='</foot>';
+            k+='<tbody id="row-table">'
+            for(var i=0;i<itemList.length;i++)
+            {
+                k+= '<tr>';
+                    k+= '<td>' + count + '</td>';
+                for(var j=0;j<itemList[i].length;j++)
+                {
+                    k+= '<td>' + itemList[i][j] + '</td>';
+                    if(j==3)
+                    {
+                        calc_total_amount+=parseFloat(itemList[i][j])
+                    }
+                }
+                k+= '</tr>';
+                count++;
+            }
+            k+='</tbody>'
+            $('#tableData').html(k);
+            $('#total_amount').text(calc_total_amount)
+            $("#hidden_total").val(calc_total_amount)
+    }
+    //cancel transaction
+    $(document).on('click', '#cancel', function(){
+        itemList.length = 0;
+        $("#amount").val('')
+        $("#remarks").val('')
+        vouchersList()
+        $("#footer").attr('style','display:none !important;')
+    });
+});
+</script>
+
+{% endblock %}
+
+{% endblock %}

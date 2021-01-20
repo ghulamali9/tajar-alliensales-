@@ -1,0 +1,26 @@
+{% if cus %}
+{% for i in cus %}
+<tr>
+    <td>{{forloop.counter}}</td>
+        <td>{{i.customer_name}}</td>
+        <td>{{i.customer_email}}</td>
+        <td>{{i.customer_designation}}</td>
+        <td>{{i.customer_phone}}</td>
+        <td>{{i.customer_address}}</td>
+        <td>
+            <button type="button" class="btn btn-warning show-form-update"   data-target="#modal-user" data-url="{% url 'dashboard-customers-update' i.id %}">
+                Edit
+            </button>
+        </td>
+        <td>
+            <button type="button" class="btn btn-danger show-form-delete"   data-target="#modal-user" data-url="{% url 'dashboard-customers-delete' i.id %}">
+                Delete
+            </button>
+        </td>
+</tr>
+{% endfor %}
+{% else %}
+<tr>
+    No data to show
+</tr>
+{% endif %}        

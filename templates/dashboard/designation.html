@@ -1,0 +1,189 @@
+{% extends 'dashboard/base.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+<div class="container-fluid">
+    <div class="block-header">
+        <h2>DASHBOARD/Designation</h2>
+    </div>
+    <div class="container-fluid py-5">
+        <div class="alert-success"></div>
+        <div class="alert-danger"></div>
+        <form class="my-ajax-form" method="POST" data-url='{{ request.build_absolute_uri|safe }}'>
+            {% csrf_token %}
+            <div class="form-group">
+                <div class="form-row">
+                    <div class="col">
+                        {{ form.designation | as_crispy_field }}       
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="col">
+                        <button type="submit" class="btn btn-danger">Add New</button>     
+                    </div>
+                </div>      
+            </div>          
+        </form>
+    </div>
+    <div class="container-fluid">
+        <!-- Basic Examples -->
+        <div class="row clearfix">
+            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                <div class="card">
+                    <div class="header">
+                        <h2>
+                            Existing Designations
+                        </h2>
+                        <ul class="header-dropdown m-r--5">
+                            <li class="dropdown">
+                                <a href="javascript:void(0);" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                                    <i class="material-icons">more_vert</i>
+                                </a>
+                                <ul class="dropdown-menu pull-right">
+                                    <li><a href="javascript:void(0);">Action</a></li>
+                                    <li><a href="javascript:void(0);">Another action</a></li>
+                                    <li><a href="javascript:void(0);">Something else here</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped table-hover js-basic-example dataTable" id="tableData">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Designation</th>
+                                        <th colspan="2">Action</th>
+                                    </tr>
+                                </thead>
+                                <tfoot>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Designation</th>
+                                        <th colspan="2">Action</th>
+                                    </tr>
+                                </tfoot>
+                                <tbody id="user-table">
+                                    {% include 'dashboard/designation-edit/list.html' %}                      
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- #END# Basic Examples -->        
+    </div>
+</div>
+
+
+
+<!-- Modal -->
+<div class="modal fade " id="modal-user" tabindex="-1" role="dialog" aria-labelledby="modal-user" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+      <div class="modal-content" style="background-color: #E7E7E7;">
+
+      </div>
+    </div>
+</div>
+
+
+{% block JavaScript %}
+
+<script>
+    var $myForm = $(".my-ajax-form");
+      $myForm.submit(function(event){
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        var $formData = $(this).serialize()
+        var $thisURL = $myForm.attr("data-url") || window.location.href
+  
+        console.log($formData)
+        console.log($thisURL)
+        $.ajax({
+          method: "POST",
+          url: $thisURL,
+          data: $formData,
+          success: handleFormSuccess,
+              error: handleFormError,
+        })
+        function handleFormSuccess(data, textStatus, jqXHR){
+         console.log(data)
+         console.log(textStatus)
+         console.log(jqXHR)
+         $myForm[0].reset(); // reset form data
+         $('.alert-success'). addClass('alert'). html('submitted successfully!'). fadeIn().delay(4000).fadeOut();
+         ShowTable();
+     }
+  
+     function handleFormError(jqXHR, textStatus, errorThrown){
+         console.log(jqXHR)
+         console.log(textStatus)
+         console.log(errorThrown)
+          $('.alert-danger'). addClass('alert'). html('submitted successfully!'). fadeIn().delay(4000).fadeOut()
+     }
+      })
+
+    
+  //Fetch Table
+function ShowTable(){
+  $.ajax({
+    url: '/designation-table',
+    dataType: 'json',
+    type: 'GET',
+    success: function(response){
+      tableFromResponse(response);
+      console.log("Data got successfully")
+    },
+    error: function(response){
+      console.log("Enable to get data");
+    }
+  });
+  function tableFromResponse(responseData) {
+    var mainObj = JSON.parse(responseData.data);
+    var count = 1;
+    var urlu = "{% url 'dashboard-designation-update' 0 %}"
+    var urld = "{% url 'dashboard-designation-delete' 0 %}"     
+    var k = '<thead>';
+          k+= '<tr>';                            
+              k+= '<th>#</th>';                        
+              k+= '<th>Designation</th>';                        
+              k+= '<th colspan="2">Action</th>'                        
+          k+= '</tr>';                        
+      k+= '</thead>';
+      k+= '<tfoot>';
+          k+= '<tr>';                            
+              k+= '<th>#</th>';                        
+              k+= '<th>Designation</th>';                        
+              k+= '<th colspan="2">Action</th>'                        
+          k+= '</tr>';                        
+      k+= '</tfoot>';
+      k += '<tbody id="user-table">';                        
+      for(i = 0;i < mainObj.length; i++){
+          
+          k+= '<tr>';
+            k+= '<td>' + count + '</td>';
+            k+= '<td>' + mainObj[i]["fields"]["designation"] + '</td>';
+            k+='<td>';
+              k+= '<button type="button" class="btn btn-warning show-form-update"   data-target="#modal-user" data-url=' + urlu.replace('0', mainObj[i]["pk"]) + '>';
+                  k+= 'Edit';
+              k+= '</button>';    
+            k+= '</td>'; 
+            k+='<td>';
+              k+= '<button type="button" class="btn btn-danger show-form-delete"   data-target="#modal-user" data-url=' + urld.replace('0', mainObj[i]["pk"]) + '>';
+                  k+= 'Delete';
+              k+= '</button>';    
+            k+= '</td>';     
+            k+= '</tr>';
+            count++;
+        }
+        k+='</tbody>';
+        $('#tableData').html(k);
+  }
+}  
+
+</script>
+
+{% endblock %}
+
+{% endblock %}
